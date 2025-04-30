@@ -62,7 +62,7 @@ if 'running' not in st.session_state:
 if 'start_time' not in st.session_state:
     st.session_state.start_time = None
 if 'duration' not in st.session_state:
-    st.session_state.duration = 0  # Total time in seconds
+    st.session_state.duration = 0
 if 'paused_time_left' not in st.session_state:
     st.session_state.paused_time_left = 0
 if 'timer_completed' not in st.session_state:
@@ -103,24 +103,29 @@ if reset:
     st.session_state.paused_time_left = 0
     st.session_state.timer_completed = False
 
-# --- Timer Logic ---
+# --- Timer logic ---
 remaining_time = 0
 if st.session_state.running:
     elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
     remaining_time = max(0, int(st.session_state.duration - elapsed))
 
+    # --- Update display like a digital clock ---
+    timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow_html=True)
+
+    # --- Stop when time hits 0 ---
     if remaining_time == 0:
         st.session_state.running = False
         st.session_state.duration = 0
         st.session_state.start_time = None
         st.session_state.paused_time_left = 0
         st.session_state.timer_completed = True
+    else:
+        # --- Auto-refresh every second ---
+        time.sleep(1)
+        st.experimental_rerun()
 
 elif st.session_state.paused_time_left > 0:
     remaining_time = int(st.session_state.paused_time_left)
-
-# --- Display Timer ---
-if st.session_state.running or remaining_time > 0:
     timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow_html=True)
 
 # --- Show Completion Message ---
@@ -129,9 +134,4 @@ if st.session_state.timer_completed:
     koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
     timer_display.markdown("<div class='timer-text'>⏳ 00:00:00</div>", unsafe_allow_html=True)
     st.success("Great work bb I'm so proud of you —love, Mona 💖")
-    st.session_state.timer_completed = False  # Reset so it doesn't repeat
-
-# --- Auto-refresh every second ---
-if st.session_state.running:
-    time.sleep(1)
-    st.experimental_rerun()
+    st.session_state.timer_completed = False
