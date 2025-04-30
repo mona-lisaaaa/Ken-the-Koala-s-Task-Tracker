@@ -42,7 +42,7 @@ st.markdown("<div class='title-text'>🐨 Ken the Koala's Task Tracker</div>", u
 
 # --- Input fields ---
 task = st.text_input("Task", "Enter your task here 📝")
-time_input = st.text_input("Enter time (HHMM)", "0130")
+time_input = st.text_input("Enter time (HH:MM)", "Enter time here ⏰")
 
 # --- Control buttons ---
 col1, col2, col3 = st.columns(3)
@@ -70,7 +70,7 @@ def format_time(seconds):
     hrs = seconds // 3600
     mins = (seconds % 3600) // 60
     secs = seconds % 60
-    return f"{hrs:02}:{mins:02}:{secs:02}"
+    return f"{hrs:02}:{mins:02}"
 
 # --- Handle start ---
 if start:
@@ -115,6 +115,6 @@ if st.session_state.remaining == 0 and st.session_state.total_seconds != 0:
     heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
     koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
     timer_display.markdown(f"<div class='timer-text'>⏳ 00:00:00</div>", unsafe_allow_html=True)
-    st.success("Great work bb I'm so proud of you —love, Mona 💖")
+    st.success("Great work bb I'm so proud of you —love, Mona")
     st.session_state.total_seconds = 0
     st.session_state.running = False
