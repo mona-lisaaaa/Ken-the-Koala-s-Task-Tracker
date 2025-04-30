@@ -108,4 +108,19 @@ elif not st.session_state.running and st.session_state.paused_remaining:
 
 # --- Display Timer ---
 if st.session_state.total_seconds > 0:
-    timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow
+    timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow_html=True)
+
+# --- When time's up ---
+if remaining_time == 0 and st.session_state.total_seconds > 0:
+    heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
+    koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
+    timer_display.markdown(f"<div class='timer-text'>⏳ 00:00</div>", unsafe_allow_html=True)
+    st.success("Great work bb I'm so proud of you —love, Mona 💖")
+    st.session_state.total_seconds = 0
+    st.session_state.end_time = None
+    st.session_state.paused_remaining = 0
+
+# --- Auto-refresh every second if running ---
+if st.session_state.running:
+    time.sleep(1)
+    st.experimental_rerun()
