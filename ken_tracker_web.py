@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # --- Page setup ---
 st.set_page_config(page_title="Ken the Koala's Task Tracker", layout="centered")
@@ -65,6 +65,8 @@ if 'duration' not in st.session_state:
     st.session_state.duration = 0
 if 'paused_time_left' not in st.session_state:
     st.session_state.paused_time_left = 0
+if 'timer_just_finished' not in st.session_state:
+    st.session_state.timer_just_finished = False
 
 # --- Format seconds as HH:MM ---
 def format_time(seconds):
@@ -82,6 +84,7 @@ if start:
             st.session_state.duration = minutes * 60
         st.session_state.start_time = datetime.now()
         st.session_state.running = True
+        st.session_state.timer_just_finished = False
     except ValueError:
         st.error("Please enter a valid number like '90' for 90 minutes.")
 
@@ -90,6 +93,7 @@ if pause and st.session_state.running:
     elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
     st.session_state.paused_time_left = max(0, st.session_state.duration - int(elapsed))
     st.session_state.running = False
+    st.session_state.timer_just_finished = False
 
 # --- Reset ---
 if reset:
@@ -97,6 +101,7 @@ if reset:
     st.session_state.start_time = None
     st.session_state.duration = 0
     st.session_state.paused_time_left = 0
+    st.session_state.timer_just_finished = False
 
 # --- Timer Logic ---
 remaining_time = 0
@@ -108,19 +113,21 @@ if st.session_state.running and st.session_state.start_time:
         st.session_state.duration = 0
         st.session_state.start_time = None
         st.session_state.paused_time_left = 0
+        st.session_state.timer_just_finished = True
 elif not st.session_state.running and st.session_state.paused_time_left > 0:
     remaining_time = st.session_state.paused_time_left
 
-# --- Display (always show timer when something is active) ---
+# --- Display Timer ---
 if st.session_state.duration > 0 or remaining_time > 0:
     timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow_html=True)
 
-# --- Show message when done ---
-if remaining_time == 0 and not st.session_state.running:
+# --- Show message ONLY when the timer ends naturally ---
+if st.session_state.timer_just_finished:
     heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
     koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
     timer_display.markdown(f"<div class='timer-text'>⏳ 00:00</div>", unsafe_allow_html=True)
     st.success("Great work bb I'm so proud of you —love, Mona 💖")
+    st.session_state.timer_just_finished = False  # reset so message doesn’t reappear
 
 # --- Auto-refresh every second while running ---
 if st.session_state.running:
