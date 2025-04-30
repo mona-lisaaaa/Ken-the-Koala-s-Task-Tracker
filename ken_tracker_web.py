@@ -66,11 +66,11 @@ if 'duration' not in st.session_state:
 if 'paused_time_left' not in st.session_state:
     st.session_state.paused_time_left = 0
 
-# --- Format seconds as MM:SS ---
+# --- Format seconds as HH:MM ---
 def format_time(seconds):
-    minutes = seconds // 60
-    seconds = seconds % 60
-    return f"{minutes:02}:{seconds:02}"
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    return f"{hours:02}:{minutes:02}"
 
 # --- Start ---
 if start:
@@ -110,19 +110,20 @@ if st.session_state.running and st.session_state.start_time:
         st.session_state.paused_time_left = 0
 
 elif not st.session_state.running and st.session_state.paused_time_left > 0:
-    remaining_time = st.session_state.paused_time_left
+    remaining_time = int(st.session_state.paused_time_left)
 
 # --- Display ---
 if st.session_state.duration > 0:
     timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow_html=True)
 
-if remaining_time == 0 and st.session_state.duration == 0:
+# --- Timer End Message ---
+if remaining_time == 0 and st.session_state.duration == 0 and not st.session_state.running:
     heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
     koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
     timer_display.markdown(f"<div class='timer-text'>⏳ 00:00</div>", unsafe_allow_html=True)
     st.success("Great work bb I'm so proud of you —love, Mona 💖")
 
-# --- Auto-refresh every second ---
+# --- Refresh once per minute when running ---
 if st.session_state.running:
-    time.sleep(1)
+    time.sleep(60)  # wait one minute
     st.experimental_rerun()
