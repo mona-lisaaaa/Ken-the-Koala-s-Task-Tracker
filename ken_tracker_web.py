@@ -42,7 +42,7 @@ st.markdown("<div class='title-text'>🐨 Ken the Koala's Task Tracker</div>", u
 
 # --- Input fields ---
 task = st.text_input("Task", "Enter your task here 📝")
-time_input = st.text_input("Enter time in minutes (MM or HMM)", "0130")
+time_input = st.text_input("Enter time in minutes", "Enter time here ⏰")
 
 # --- Control buttons ---
 col1, col2, col3 = st.columns(3)
@@ -69,7 +69,7 @@ if 'paused' not in st.session_state:
 def format_time(seconds):
     mins = seconds // 60
     secs = seconds % 60
-    return f"{mins:02}:{secs:02}"
+    return f"{mins:02}"
 
 # --- Handle start ---
 if start:
@@ -99,9 +99,7 @@ if reset:
 # --- Timer logic ---
 if st.session_state.running and st.session_state.remaining > 0:
     while st.session_state.remaining > 0 and st.session_state.running:
-        # Display heart + koala + timer
-        heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
-        koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
+        # Display timer
         timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(st.session_state.remaining)}</div>", unsafe_allow_html=True)
 
         time.sleep(1)
