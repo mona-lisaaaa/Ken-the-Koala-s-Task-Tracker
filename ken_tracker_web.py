@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+from datetime import datetime, timedelta
 
 # --- Page setup ---
 st.set_page_config(page_title="Ken the Koala's Task Tracker", layout="centered")
@@ -58,12 +59,12 @@ timer_display = st.empty()
 # --- Session state initialization ---
 if 'running' not in st.session_state:
     st.session_state.running = False
+if 'end_time' not in st.session_state:
+    st.session_state.end_time = None
 if 'total_seconds' not in st.session_state:
     st.session_state.total_seconds = 0
-if 'remaining' not in st.session_state:
-    st.session_state.remaining = 0
-if 'paused' not in st.session_state:
-    st.session_state.paused = False
+if 'paused_remaining' not in st.session_state:
+    st.session_state.paused_remaining = 0
 
 # --- Format seconds as HH:MM ---
 def format_time(seconds):
@@ -78,40 +79,33 @@ if start:
         total_seconds = minutes * 60
         if total_seconds > 0:
             st.session_state.total_seconds = total_seconds
-            st.session_state.remaining = total_seconds
+            st.session_state.end_time = datetime.now() + timedelta(seconds=total_seconds)
             st.session_state.running = True
-            st.session_state.paused = False
     except ValueError:
         st.error("Please enter a valid number like '90' for 90 minutes.")
 
 # --- Handle pause ---
-if pause:
+if pause and st.session_state.running:
+    st.session_state.paused_remaining = (st.session_state.end_time - datetime.now()).total_seconds()
     st.session_state.running = False
-    st.session_state.paused = True
 
 # --- Handle reset ---
 if reset:
     st.session_state.running = False
-    st.session_state.paused = False
-    st.session_state.remaining = st.session_state.total_seconds
+    st.session_state.end_time = None
+    st.session_state.paused_remaining = 0
 
 # --- Timer logic ---
-if st.session_state.running and st.session_state.remaining > 0:
-    while st.session_state.remaining > 0 and st.session_state.running:
-        timer_display.markdown(
-            f"<div class='timer-text'>⏳ {format_time(st.session_state.remaining)}</div>",
-            unsafe_allow_html=True,
-        )
+remaining_time = 0
+if st.session_state.running and st.session_state.end_time:
+    remaining_time = int((st.session_state.end_time - datetime.now()).total_seconds())
+    if remaining_time <= 0:
+        remaining_time = 0
+        st.session_state.running = False
 
-        time.sleep(1)
-        st.session_state.remaining -= 1
-        st.experimental_rerun()
+elif not st.session_state.running and st.session_state.paused_remaining:
+    remaining_time = int(st.session_state.paused_remaining)
 
-# --- When time's up ---
-if st.session_state.remaining == 0 and st.session_state.total_seconds != 0:
-    heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
-    koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
-    timer_display.markdown(f"<div class='timer-text'>⏳ 00:00</div>", unsafe_allow_html=True)
-    st.success("Great work bb I'm so proud of you —love, Mona 💖")
-    st.session_state.total_seconds = 0
-    st.session_state.running = False
+# --- Display Timer ---
+if st.session_state.total_seconds > 0:
+    timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow
