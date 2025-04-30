@@ -68,11 +68,12 @@ if 'paused_time_left' not in st.session_state:
 if 'timer_just_finished' not in st.session_state:
     st.session_state.timer_just_finished = False
 
-# --- Format seconds as HH:MM ---
+# --- Format seconds as HH:MM:SS ---
 def format_time(seconds):
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
-    return f"{hours:02}:{minutes:02}"
+    secs = seconds % 60
+    return f"{hours:02}:{minutes:02}:{secs:02}"
 
 # --- Start ---
 if start:
@@ -125,9 +126,9 @@ if st.session_state.duration > 0 or remaining_time > 0:
 if st.session_state.timer_just_finished:
     heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
     koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
-    timer_display.markdown(f"<div class='timer-text'>⏳ 00:00</div>", unsafe_allow_html=True)
+    timer_display.markdown(f"<div class='timer-text'>⏳ 00:00:00</div>", unsafe_allow_html=True)
     st.success("Great work bb I'm so proud of you —love, Mona 💖")
-    st.session_state.timer_just_finished = False  # reset so message doesn’t reappear
+    st.session_state.timer_just_finished = False
 
 # --- Auto-refresh every second while running ---
 if st.session_state.running:
