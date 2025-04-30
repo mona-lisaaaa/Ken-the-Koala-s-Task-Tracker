@@ -42,7 +42,7 @@ st.markdown("<div class='title-text'>🐨 Ken the Koala's Task Tracker</div>", u
 
 # --- Input fields ---
 task = st.text_input("Task", "Enter your task here 📝")
-time_input = st.text_input("Enter time (HH:MM)", "Enter time here ⏰")
+time_input = st.text_input("Enter time in minutes (MM or HMM)", "0130")
 
 # --- Control buttons ---
 col1, col2, col3 = st.columns(3)
@@ -65,27 +65,25 @@ if 'remaining' not in st.session_state:
 if 'paused' not in st.session_state:
     st.session_state.paused = False
 
-# --- Format seconds as HH:MM:SS ---
+# --- Format seconds as MM:SS ---
 def format_time(seconds):
-    hrs = seconds // 3600
-    mins = (seconds % 3600) // 60
+    mins = seconds // 60
     secs = seconds % 60
-    return f"{hrs:02}:{mins:02}"
+    return f"{mins:02}:{secs:02}"
 
 # --- Handle start ---
 if start:
     try:
-        t = time_input.zfill(4)
-        hours = int(t[:2])
-        minutes = int(t[2:])
-        total_seconds = hours * 3600 + minutes * 60
+        # Interpret all digits as minutes (e.g., 0130 = 130 minutes)
+        minutes = int(time_input)
+        total_seconds = minutes * 60
         if total_seconds > 0:
             st.session_state.total_seconds = total_seconds
             st.session_state.remaining = total_seconds
             st.session_state.running = True
             st.session_state.paused = False
     except ValueError:
-        st.error("Please enter a valid 4-digit number like '0130' for 1 hour 30 minutes.")
+        st.error("Please enter a valid number like '0130' for 130 minutes.")
 
 # --- Handle pause ---
 if pause:
@@ -114,7 +112,7 @@ if st.session_state.running and st.session_state.remaining > 0:
 if st.session_state.remaining == 0 and st.session_state.total_seconds != 0:
     heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
     koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
-    timer_display.markdown(f"<div class='timer-text'>⏳ 00:00:00</div>", unsafe_allow_html=True)
-    st.success("Great work bb I'm so proud of you —love, Mona")
+    timer_display.markdown(f"<div class='timer-text'>⏳ 00:00</div>", unsafe_allow_html=True)
+    st.success("Great work bb I'm so proud of you —love, Mona 💖")
     st.session_state.total_seconds = 0
     st.session_state.running = False
