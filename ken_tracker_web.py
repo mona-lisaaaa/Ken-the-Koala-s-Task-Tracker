@@ -62,11 +62,11 @@ if 'running' not in st.session_state:
 if 'start_time' not in st.session_state:
     st.session_state.start_time = None
 if 'duration' not in st.session_state:
-    st.session_state.duration = 0
+    st.session_state.duration = 0  # Total time in seconds
 if 'paused_time_left' not in st.session_state:
     st.session_state.paused_time_left = 0
-if 'timer_just_finished' not in st.session_state:
-    st.session_state.timer_just_finished = False
+if 'timer_completed' not in st.session_state:
+    st.session_state.timer_completed = False
 
 # --- Format time as HH:MM:SS ---
 def format_time(seconds):
@@ -75,7 +75,7 @@ def format_time(seconds):
     secs = seconds % 60
     return f"{hours:02}:{minutes:02}:{secs:02}"
 
-# --- Start button logic ---
+# --- Start ---
 if start:
     try:
         if st.session_state.paused_time_left > 0:
@@ -85,28 +85,27 @@ if start:
             st.session_state.duration = minutes * 60
         st.session_state.start_time = datetime.now()
         st.session_state.running = True
-        st.session_state.timer_just_finished = False
+        st.session_state.timer_completed = False
     except ValueError:
         st.error("Please enter a valid number like '90' for 90 minutes.")
 
-# --- Pause button logic ---
+# --- Pause ---
 if pause and st.session_state.running:
     elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
-    st.session_state.paused_time_left = max(0, st.session_state.duration - int(elapsed))
+    st.session_state.paused_time_left = max(0, int(st.session_state.duration - elapsed))
     st.session_state.running = False
-    st.session_state.timer_just_finished = False
 
-# --- Reset button logic ---
+# --- Reset ---
 if reset:
     st.session_state.running = False
     st.session_state.start_time = None
     st.session_state.duration = 0
     st.session_state.paused_time_left = 0
-    st.session_state.timer_just_finished = False
+    st.session_state.timer_completed = False
 
-# --- Timer logic ---
+# --- Timer Logic ---
 remaining_time = 0
-if st.session_state.running and st.session_state.start_time:
+if st.session_state.running:
     elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
     remaining_time = max(0, int(st.session_state.duration - elapsed))
 
@@ -115,24 +114,24 @@ if st.session_state.running and st.session_state.start_time:
         st.session_state.duration = 0
         st.session_state.start_time = None
         st.session_state.paused_time_left = 0
-        st.session_state.timer_just_finished = True
+        st.session_state.timer_completed = True
 
-elif not st.session_state.running and st.session_state.paused_time_left > 0:
-    remaining_time = st.session_state.paused_time_left
+elif st.session_state.paused_time_left > 0:
+    remaining_time = int(st.session_state.paused_time_left)
 
-# --- Display timer ---
-if st.session_state.duration > 0 or remaining_time > 0:
+# --- Display Timer ---
+if st.session_state.running or remaining_time > 0:
     timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow_html=True)
 
-# --- Display message when time reaches 0 naturally ---
-if st.session_state.timer_just_finished:
+# --- Show Completion Message ---
+if st.session_state.timer_completed:
     heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
     koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
-    timer_display.markdown(f"<div class='timer-text'>⏳ 00:00:00</div>", unsafe_allow_html=True)
+    timer_display.markdown("<div class='timer-text'>⏳ 00:00:00</div>", unsafe_allow_html=True)
     st.success("Great work bb I'm so proud of you —love, Mona 💖")
-    st.session_state.timer_just_finished = False
+    st.session_state.timer_completed = False  # Reset so it doesn't repeat
 
-# --- Auto-refresh every second while running ---
+# --- Auto-refresh every second ---
 if st.session_state.running:
     time.sleep(1)
     st.experimental_rerun()
