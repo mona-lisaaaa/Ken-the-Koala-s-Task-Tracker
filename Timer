@@ -1,120 +1,142 @@
-class TaskTracker:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Ken the Koala's task tracker")
-        self.root.configure(bg="#aed6f1")
+import streamlit as st
+import time
 
-        self.timer_running = False
-        self.timer_seconds = 0
-        self.current_seconds = 0
-        self.timer_id = None
+# --- Page setup ---
+st.set_page_config(page_title="Ken the Koala's Task Tracker", layout="centered")
+st.markdown(
+    """
+    <style>
+        .title-text {
+            font-size: 28px;
+            color: white;
+            text-align: center;
+            font-family: Courier;
+        }
+        .timer-text {
+            font-size: 48px;
+            color: white;
+            text-align: center;
+            font-family: Courier;
+        }
+        .heart {
+            font-size: 70px;
+            text-align: center;
+        }
+        .km {
+            font-size: 24px;
+            color: white;
+            margin-top: -60px;
+            text-align: center;
+            font-family: Courier;
+        }
+        .stApp {
+            background-color: #aed6f1;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-        self.font = ("Courier", 16, "bold")
+# --- Title ---
+st.markdown("<div class='title-text'>💙 Ken the Koala's Task Tracker</div>", unsafe_allow_html=True)
 
-        # Task entry
-        self.task_entry = tk.Entry(root, font=self.font, bg="#2471a3", fg="white", justify="center")
-        self.task_entry.insert(0, "Enter your task")
-        self.task_entry.pack(pady=10, ipadx=30, ipady=5)
+# --- Input fields ---
+task = st.text_input("Task", "Enter your task here 📝")
+time_input = st.text_input("Enter time (MMSS)", "0130")
 
-        # Time input
-        self.time_entry = tk.Entry(root, font=self.font, bg="#2471a3", fg="white", width=5, justify="center")
-        self.time_entry.insert(0, "0000")
-        self.time_entry.pack(pady=10)
+# --- Control buttons ---
+col1, col2, col3 = st.columns(3)
+start = col1.button("🐰 start")
+pause = col2.button("🦊 pause")
+reset = col3.button("🦕 reset")
 
-        # Canvas for heart and countdown
-        self.canvas = tk.Canvas(root, width=300, height=300, bg="#aed6f1", highlightthickness=0)
-        self.canvas.pack()
+# --- Timer display slots ---
+heart_slot = st.empty()
+koala_slot = st.empty()
+timer_display = st.empty()
 
-        self.draw_heart()
+# --- Session state initialization ---
+if 'running' not in st.session_state:
+    st.session_state.running = False
+if 'seconds' not in st.session_state:
+    st.session_state.seconds = 0
+if 'remaining' not in st.session_state:
+    st.session_state.remaining = 0
+if 'paused' not in st.session_state:
+    st.session_state.paused = False
 
-        # Buttons
-        self.controls_frame = tk.Frame(root, bg="#aed6f1")
-        self.controls_frame.pack(pady=10)
+# --- Timer formatting ---
+def format_time(seconds):
+    mins = seconds // 60
+    secs = seconds % 60
+    return f"{mins:02}:{secs:02}"
 
-        self.start_button = tk.Button(self.controls_frame, text="🐰 start", font=self.font,
-                                      command=self.start_timer, bg="#2471a3", fg="white")
-        self.start_button.grid(row=0, column=0, padx=10)
+# --- Koala position by progress ---
+def draw_koala(progress):
+    # Approximate orbit path positions
+    positions = [
+        "    🐨    ",  # top
+        "  🐨      ",
+        "🐨        ",
+        "🐨        ",
+        "  🐨      ",
+        "    🐨    ",
+        "      🐨  ",
+        "        🐨",
+        "        🐨",
+        "      🐨  "
+    ]
+    index = int(progress * (len(positions)-1))
+    return positions[index]
 
-        self.pause_button = tk.Button(self.controls_frame, text="🦊 pause", font=self.font,
-                                      command=self.pause_timer, bg="#2471a3", fg="white")
-        self.pause_button.grid(row=0, column=1, padx=10)
+# --- Handle start ---
+if start:
+    try:
+        t = time_input.zfill(4)
+        total_seconds = int(t[:2]) * 60 + int(t[2:])
+        if total_seconds > 0:
+            st.session_state.seconds = total_seconds
+            st.session_state.remaining = total_seconds
+            st.session_state.running = True
+            st.session_state.paused = False
+    except ValueError:
+        st.error("Please enter a valid 4-digit number like '0130' for 1 minute 30 seconds.")
 
-        self.reset_button = tk.Button(self.controls_frame, text="🦕 reset", font=self.font,
-                                      command=self.reset_timer, bg="#2471a3", fg="white")
-        self.reset_button.grid(row=0, column=2, padx=10)
+# --- Handle pause ---
+if pause:
+    st.session_state.running = False
+    st.session_state.paused = True
 
-    def draw_heart(self):
-        self.canvas.delete("all")
-        # Heart shape
-        self.canvas.create_polygon(
-            150, 180,
-            220, 100,
-            190, 60,
-            150, 90,
-            110, 60,
-            80, 100,
-            fill="#2471a3", outline=""
-        )
+# --- Handle reset ---
+if reset:
+    st.session_state.running = False
+    st.session_state.paused = False
+    st.session_state.remaining = st.session_state.seconds
 
-        # Center text
-        self.canvas.create_text(150, 120, text="K+M", fill="white", font=("Courier", 20, "bold"))
+# --- Timer logic ---
+if st.session_state.running and st.session_state.remaining > 0:
+    while st.session_state.remaining > 0 and st.session_state.running:
+        # Heart and K+M
+        heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
+        st.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
 
-        # Draw rotating 🐨
-        if self.timer_running and self.current_seconds > 0:
-            angle = (self.timer_seconds - self.current_seconds) / self.timer_seconds * 360
-        elif self.current_seconds == self.timer_seconds:
-            angle = 0
-        else:
-            angle = (self.timer_seconds - self.current_seconds) / self.timer_seconds * 360
+        # Koala animation
+        progress = (st.session_state.seconds - st.session_state.remaining) / st.session_state.seconds
+        koala_slot.markdown(f"<div class='title-text'>{draw_koala(progress)}</div>", unsafe_allow_html=True)
 
-        # Position of koala on the heart edge
-        radius = 60
-        rad = math.radians(angle - 90)
-        x = 150 + radius * math.cos(rad)
-        y = 180 + radius * math.sin(rad)
+        # Timer display
+        timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(st.session_state.remaining)}</div>", unsafe_allow_html=True)
 
-        self.canvas.create_text(x, y, text="🐨", font=("Courier", 20))
+        time.sleep(1)
+        st.session_state.remaining -= 1
+        st.experimental_rerun()
 
-    def format_time(self, time_str):
-        time_str = time_str.zfill(4)
-        minutes = int(time_str[:2])
-        seconds = int(time_str[2:])
-        return minutes * 60 + seconds
-
-    def start_timer(self):
-        if not self.timer_running:
-            try:
-                self.timer_seconds = self.format_time(self.time_entry.get())
-                if self.timer_seconds == 0:
-                    return
-                self.current_seconds = self.timer_seconds
-                self.timer_running = True
-                self.update_timer()
-            except ValueError:
-                messagebox.showerror("Invalid input", "Please enter a valid 4-digit time.")
-    
-    def update_timer(self):
-        self.draw_heart()
-        if self.current_seconds > 0:
-            self.current_seconds -= 1
-            self.timer_id = self.root.after(1000, self.update_timer)
-        else:
-            self.timer_running = False
-            self.draw_heart()
-            messagebox.showinfo("Time's up", "Great work bb I'm so proud of you —love, Mona")
-
-    def pause_timer(self):
-        if self.timer_running:
-            self.timer_running = False
-            if self.timer_id:
-                self.root.after_cancel(self.timer_id)
-
-    def reset_timer(self):
-        self.pause_timer()
-        self.current_seconds = self.timer_seconds
-        self.draw_heart()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = TaskTracker(root)
-    root.mainloop()
+# --- When time's up ---
+if st.session_state.remaining == 0 and st.session_state.seconds != 0:
+    heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
+    st.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
+    koala_slot.markdown(f"<div class='title-text'>🐨</div>", unsafe_allow_html=True)
+    timer_display.markdown(f"<div class='timer-text'>⏳ 00:00</div>", unsafe_allow_html=True)
+    st.success("Great work bb I'm so proud of you —love, Mona 💖")
+    st.session_state.seconds = 0
+    st.session_state.running = False
