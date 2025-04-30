@@ -38,11 +38,11 @@ st.markdown(
 )
 
 # --- Title ---
-st.markdown("<div class='title-text'>💙 Ken the Koala's Task Tracker</div>", unsafe_allow_html=True)
+st.markdown("<div class='title-text'>🐨 Ken the Koala's Task Tracker</div>", unsafe_allow_html=True)
 
 # --- Input fields ---
 task = st.text_input("Task", "Enter your task here 📝")
-time_input = st.text_input("Enter time (MMSS)", "0130")
+time_input = st.text_input("Enter time (00:00)", "0130")
 
 # --- Control buttons ---
 col1, col2, col3 = st.columns(3)
@@ -71,24 +71,6 @@ def format_time(seconds):
     secs = seconds % 60
     return f"{mins:02}:{secs:02}"
 
-# --- Koala position by progress ---
-def draw_koala(progress):
-    # Approximate orbit path positions
-    positions = [
-        "    🐨    ",  # top
-        "  🐨      ",
-        "🐨        ",
-        "🐨        ",
-        "  🐨      ",
-        "    🐨    ",
-        "      🐨  ",
-        "        🐨",
-        "        🐨",
-        "      🐨  "
-    ]
-    index = int(progress * (len(positions)-1))
-    return positions[index]
-
 # --- Handle start ---
 if start:
     try:
@@ -116,14 +98,7 @@ if reset:
 # --- Timer logic ---
 if st.session_state.running and st.session_state.remaining > 0:
     while st.session_state.remaining > 0 and st.session_state.running:
-        # Heart and K+M
-        heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
-        st.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
-
-        # Koala animation
-        progress = (st.session_state.seconds - st.session_state.remaining) / st.session_state.seconds
-        koala_slot.markdown(f"<div class='title-text'>{draw_koala(progress)}</div>", unsafe_allow_html=True)
-
+      
         # Timer display
         timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(st.session_state.remaining)}</div>", unsafe_allow_html=True)
 
