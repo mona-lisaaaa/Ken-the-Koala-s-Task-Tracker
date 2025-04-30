@@ -68,14 +68,14 @@ if 'paused_time_left' not in st.session_state:
 if 'timer_just_finished' not in st.session_state:
     st.session_state.timer_just_finished = False
 
-# --- Format seconds as HH:MM:SS ---
+# --- Format time as HH:MM:SS ---
 def format_time(seconds):
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
     secs = seconds % 60
     return f"{hours:02}:{minutes:02}:{secs:02}"
 
-# --- Start ---
+# --- Start button logic ---
 if start:
     try:
         if st.session_state.paused_time_left > 0:
@@ -89,14 +89,14 @@ if start:
     except ValueError:
         st.error("Please enter a valid number like '90' for 90 minutes.")
 
-# --- Pause ---
+# --- Pause button logic ---
 if pause and st.session_state.running:
     elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
     st.session_state.paused_time_left = max(0, st.session_state.duration - int(elapsed))
     st.session_state.running = False
     st.session_state.timer_just_finished = False
 
-# --- Reset ---
+# --- Reset button logic ---
 if reset:
     st.session_state.running = False
     st.session_state.start_time = None
@@ -104,25 +104,27 @@ if reset:
     st.session_state.paused_time_left = 0
     st.session_state.timer_just_finished = False
 
-# --- Timer Logic ---
+# --- Timer logic ---
 remaining_time = 0
 if st.session_state.running and st.session_state.start_time:
     elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
     remaining_time = max(0, int(st.session_state.duration - elapsed))
+
     if remaining_time == 0:
         st.session_state.running = False
         st.session_state.duration = 0
         st.session_state.start_time = None
         st.session_state.paused_time_left = 0
         st.session_state.timer_just_finished = True
+
 elif not st.session_state.running and st.session_state.paused_time_left > 0:
     remaining_time = st.session_state.paused_time_left
 
-# --- Display Timer ---
+# --- Display timer ---
 if st.session_state.duration > 0 or remaining_time > 0:
     timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow_html=True)
 
-# --- Show message ONLY when the timer ends naturally ---
+# --- Display message when time reaches 0 naturally ---
 if st.session_state.timer_just_finished:
     heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
     koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
