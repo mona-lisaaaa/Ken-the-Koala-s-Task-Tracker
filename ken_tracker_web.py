@@ -65,16 +65,15 @@ if 'remaining' not in st.session_state:
 if 'paused' not in st.session_state:
     st.session_state.paused = False
 
-# --- Format seconds as MM:SS ---
+# --- Format seconds as HH:MM ---
 def format_time(seconds):
-    mins = seconds // 60
-    secs = seconds % 60
-    return f"{mins:02}"
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    return f"{hours:02}:{minutes:02}"
 
 # --- Handle start ---
 if start:
     try:
-        # Interpret all digits as minutes (e.g., 0130 = 130 minutes)
         minutes = int(time_input)
         total_seconds = minutes * 60
         if total_seconds > 0:
@@ -83,7 +82,7 @@ if start:
             st.session_state.running = True
             st.session_state.paused = False
     except ValueError:
-        st.error("Please enter a valid number like '0130' for 130 minutes.")
+        st.error("Please enter a valid number like '90' for 90 minutes.")
 
 # --- Handle pause ---
 if pause:
@@ -99,8 +98,10 @@ if reset:
 # --- Timer logic ---
 if st.session_state.running and st.session_state.remaining > 0:
     while st.session_state.remaining > 0 and st.session_state.running:
-        # Display timer
-        timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(st.session_state.remaining)}</div>", unsafe_allow_html=True)
+        timer_display.markdown(
+            f"<div class='timer-text'>⏳ {format_time(st.session_state.remaining)}</div>",
+            unsafe_allow_html=True,
+        )
 
         time.sleep(1)
         st.session_state.remaining -= 1
