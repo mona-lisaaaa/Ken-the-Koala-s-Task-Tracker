@@ -1,0 +1,142 @@
+import streamlit as st
+import time
+
+# --- Page setup ---
+st.set_page_config(page_title="Ken the Koala's Task Tracker", layout="centered")
+st.markdown(
+    """
+    <style>
+        body {
+            background-color: #aed6f1;
+        }
+        .title-text {
+            font-size: 28px;
+            color: white;
+            text-align: center;
+            font-family: Courier;
+        }
+        .timer-text {
+            font-size: 48px;
+            color: white;
+            text-align: center;
+            font-family: Courier;
+        }
+        .heart {
+            font-size: 70px;
+            text-align: center;
+        }
+        .km {
+            font-size: 24px;
+            color: white;
+            margin-top: -60px;
+            text-align: center;
+            font-family: Courier;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# --- Title ---
+st.markdown("<div class='title-text'>💙 Ken the Koala's Task Tracker</div>", unsafe_allow_html=True)
+
+# --- Input fields ---
+task = st.text_input("Task", "Enter your task here 📝")
+time_input = st.text_input("Enter time (MMSS)", "0130")
+
+# --- Control buttons ---
+col1, col2, col3 = st.columns(3)
+start = col1.button("🐰 start")
+pause = col2.button("🦊 pause")
+reset = col3.button("🦕 reset")
+
+# --- Timer display slots ---
+heart_slot = st.empty()
+koala_slot = st.empty()
+timer_display = st.empty()
+
+# --- Session state initialization ---
+if 'running' not in st.session_state:
+    st.session_state.running = False
+if 'seconds' not in st.session_state:
+    st.session_state.seconds = 0
+if 'remaining' not in st.session_state:
+    st.session_state.remaining = 0
+if 'paused' not in st.session_state:
+    st.session_state.paused = False
+
+# --- Timer formatting ---
+def format_time(seconds):
+    mins = seconds // 60
+    secs = seconds % 60
+    return f"{mins:02}:{secs:02}"
+
+# --- Koala position by progress ---
+def draw_koala(progress):
+    # Approximate orbit path positions
+    positions = [
+        "    🐨    ",  # top
+        "  🐨      ",
+        "🐨        ",
+        "🐨        ",
+        "  🐨      ",
+        "    🐨    ",
+        "      🐨  ",
+        "        🐨",
+        "        🐨",
+        "      🐨  "
+    ]
+    index = int(progress * (len(positions)-1))
+    return positions[index]
+
+# --- Handle start ---
+if start:
+    try:
+        t = time_input.zfill(4)
+        total_seconds = int(t[:2]) * 60 + int(t[2:])
+        if total_seconds > 0:
+            st.session_state.seconds = total_seconds
+            st.session_state.remaining = total_seconds
+            st.session_state.running = True
+            st.session_state.paused = False
+    except ValueError:
+        st.error("Please enter a valid 4-digit number like '0130' for 1 minute 30 seconds.")
+
+# --- Handle pause ---
+if pause:
+    st.session_state.running = False
+    st.session_state.paused = True
+
+# --- Handle reset ---
+if reset:
+    st.session_state.running = False
+    st.session_state.paused = False
+    st.session_state.remaining = st.session_state.seconds
+
+# --- Timer logic ---
+if st.session_state.running and st.session_state.remaining > 0:
+    while st.session_state.remaining > 0 and st.session_state.running:
+        # Heart and K+M
+        heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
+        st.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
+
+        # Koala animation
+        progress = (st.session_state.seconds - st.session_state.remaining) / st.session_state.seconds
+        koala_slot.markdown(f"<div class='title-text'>{draw_koala(progress)}</div>", unsafe_allow_html=True)
+
+        # Timer display
+        timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(st.session_state.remaining)}</div>", unsafe_allow_html=True)
+
+        time.sleep(1)
+        st.session_state.remaining -= 1
+        st.experimental_rerun()
+
+# --- When time's up ---
+if st.session_state.remaining == 0 and st.session_state.seconds != 0:
+    heart_slot.markdown("<div class='heart'>💙</div>", unsafe_allow_html=True)
+    st.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
+    koala_slot.markdown(f"<div class='title-text'>🐨</div>", unsafe_allow_html=True)
+    timer_display.markdown(f"<div class='timer-text'>⏳ 00:00</div>", unsafe_allow_html=True)
+    st.success("Great work bb I'm so proud of you —love, Mona 💖")
+    st.session_state.seconds = 0
+    st.session_state.running = False
