@@ -4,20 +4,23 @@ import time
 
 # --- Page setup ---
 st.set_page_config(page_title="Ken the Koala's Task Tracker", layout="centered")
+
+# --- Custom CSS for typewriter font ---
 st.markdown(
     """
     <style>
+        * {
+            font-family: "Courier New", Courier, monospace !important;
+        }
         .title-text {
             font-size: 28px;
             color: white;
             text-align: center;
-            font-family: Courier;
         }
         .timer-text {
             font-size: 48px;
             color: white;
             text-align: center;
-            font-family: Courier;
         }
         .heart {
             font-size: 70px;
@@ -28,7 +31,6 @@ st.markdown(
             color: white;
             margin-top: -60px;
             text-align: center;
-            font-family: Courier;
         }
         .stApp {
             background-color: #aed6f1;
@@ -128,9 +130,9 @@ if st.session_state.timer_completed:
     koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
     timer_display.markdown("<div class='timer-text'>⏳ 00:00:00</div>", unsafe_allow_html=True)
     st.success("Great work bb I'm so proud of you —love, Mona 💖")
-    st.session_state.timer_completed = False  # reset for next run
+    st.session_state.timer_completed = False  # Reset after showing once
 
 # --- Refresh every second if running ---
 if st.session_state.running:
     time.sleep(1)
-    st.rerun()  # Change from st.experimental_rerun() to st.rerun()
+    st.rerun()
