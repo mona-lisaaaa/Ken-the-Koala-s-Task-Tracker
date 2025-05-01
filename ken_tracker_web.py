@@ -1,6 +1,6 @@
 import streamlit as st
-import time
 from datetime import datetime
+import time
 
 # --- Page setup ---
 st.set_page_config(page_title="Ken the Koala's Task Tracker", layout="centered")
@@ -109,23 +109,18 @@ if st.session_state.running:
     elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
     remaining_time = max(0, int(st.session_state.duration - elapsed))
 
-    # --- Update display like a digital clock ---
-    timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow_html=True)
-
-    # --- Stop when time hits 0 ---
     if remaining_time == 0:
         st.session_state.running = False
-        st.session_state.duration = 0
         st.session_state.start_time = None
+        st.session_state.duration = 0
         st.session_state.paused_time_left = 0
         st.session_state.timer_completed = True
-    else:
-        # --- Auto-refresh every second ---
-        time.sleep(1)
-        st.experimental_rerun()
 
 elif st.session_state.paused_time_left > 0:
     remaining_time = int(st.session_state.paused_time_left)
+
+# --- Display Timer ---
+if st.session_state.running or remaining_time > 0:
     timer_display.markdown(f"<div class='timer-text'>⏳ {format_time(remaining_time)}</div>", unsafe_allow_html=True)
 
 # --- Show Completion Message ---
@@ -135,3 +130,8 @@ if st.session_state.timer_completed:
     timer_display.markdown("<div class='timer-text'>⏳ 00:00:00</div>", unsafe_allow_html=True)
     st.success("Great work bb I'm so proud of you —love, Mona 💖")
     st.session_state.timer_completed = False
+
+# --- Auto-refresh loop only if running ---
+if st.session_state.running:
+    time.sleep(1)
+    st.experimental_rerun()
