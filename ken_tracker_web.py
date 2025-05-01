@@ -133,5 +133,4 @@ if st.session_state.timer_completed:
 # --- Refresh every second if running ---
 if st.session_state.running:
     time.sleep(1)
-    st.experimental_rerun()
-
+    st.rerun()  # Change from st.experimental_rerun() to st.rerun()
