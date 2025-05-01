@@ -134,4 +134,3 @@ if st.session_state.timer_completed:
 # --- Auto-refresh loop only if running ---
 if st.session_state.running:
     time.sleep(1)
-    st.experimental_rerun()
