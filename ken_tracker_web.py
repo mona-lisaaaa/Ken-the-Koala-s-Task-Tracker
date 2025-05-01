@@ -126,8 +126,7 @@ if st.session_state.running or remaining_seconds > 0:
 
 # --- Completion message ---
 if st.session_state.timer_completed:
-    heart_slot.markdown("<div class='heart'>🐨</div>", unsafe_allow_html=True)
-    koala_slot.markdown("<div class='km'>K + M</div>", unsafe_allow_html=True)
+    heart_slot.image("B4A85728-061B-40A9-9320-F6B8D994111F.PNG", width=150)
     timer_display.markdown("<div class='timer-text'>⏳ 00:00:00</div>", unsafe_allow_html=True)
     st.success("Great work bb I'm so proud of you —love, Mona 💖")
     st.session_state.timer_completed = False  # Reset after showing once
